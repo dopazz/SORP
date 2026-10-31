@@ -1,0 +1,7 @@
+// sorp.rc -- the executable's resources.
+//
+// The FIRST icon in a program's resources, by numeric id, is the one
+// Explorer and the taskbar show, so this is id 1.  The path is relative
+// to this .rc file, which is why rc.exe is run from the src directory.
+
+1 ICON "truck_icon.ico"

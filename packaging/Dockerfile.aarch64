@@ -1,0 +1,40 @@
+# SORP - Super Off Road Port
+# Copyright (C) 2026 dopaz
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.  It is distributed WITHOUT ANY WARRANTY; see
+# the GNU General Public License in LICENSE for details.
+#
+# Developed with the assistance of Claude Opus 5 and Claude Opus 5.5.
+
+# A cross-compiler for aarch64 Linux handhelds (Knulli and the like).
+#
+# Debian bullseye, x86_64, with the arm64 toolchain and arm64 development
+# packages: no emulation.  bullseye's own glibc is 2.31, but nothing SORP
+# or SDL3 calls is newer than 2.29, so the result runs on 2.29 and later -- old
+# enough for the handheld distributions (ArkOS, muOS, Knulli, ROCKNIX).
+FROM debian:bullseye
+
+# bullseye is past its end of life: its packages are on the archive now
+RUN rm -f /etc/apt/sources.list.d/* && \
+    printf '%s\n' \
+      'deb http://archive.debian.org/debian bullseye main' \
+      'deb http://archive.debian.org/debian bullseye-updates main' \
+      'deb http://archive.debian.org/debian-security bullseye-security main' \
+      > /etc/apt/sources.list
+
+RUN dpkg --add-architecture arm64 && apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates git make cmake ninja-build pkg-config file zip \
+        crossbuild-essential-arm64 \
+        libdrm-dev:arm64 libgbm-dev:arm64 libegl-dev:arm64 libgles-dev:arm64 \
+        libasound2-dev:arm64 libpulse-dev:arm64 libpipewire-0.3-dev:arm64 \
+        libudev-dev:arm64 libdbus-1-dev:arm64 \
+        libwayland-dev:arm64 libxkbcommon-dev:arm64 wayland-protocols \
+        libwayland-bin && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV PKG_CONFIG_LIBDIR=/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig

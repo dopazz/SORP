@@ -1,0 +1,41 @@
+# CMake / Visual Studio build tree
+build/
+
+# the original game's files: never redistributed
+/gamedata/
+
+# MSVC build outputs (build.cmd puts all but sorp.exe in build/msvc/)
+*.obj
+*.pdb
+*.ilk
+*.res
+sorp.exe
+
+# copied from SDL3/lib/x64 by the build task
+/SDL3.dll
+# SORP's own Ironman Club table, written beside sorp.exe
+/IRONHI.BIN
+# ...and the Track-Pak's, kept apart
+/IRONHITP.BIN
+# SORP's settings, written beside sorp.exe
+/sorp.cfg
+# SORP's log, written beside sorp.exe each run
+/sorp.log
+
+# Python bytecode from the scripts in claude/ and padmap.py
+__pycache__/
+
+# everything extracted from the arcade ROMs (kept in gamedata/trackpak): never
+# redistributed
+/claude/trackpak/extracted/
+
+# test harnesses Claude builds from claude/*.c
+claude/*.exe
+claude/trackpak/c/*.exe
+
+# the devtools' Python (claude/devtools/setup.sh) and their scratch folders
+/claude/devtools/.venv/
+/claude/devtools/pmzip/
+/claude/devtools/pmpkg/
+/claude/devtools/cubetest/
+/claude/devtools/fdtest/

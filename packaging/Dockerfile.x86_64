@@ -1,0 +1,38 @@
+# SORP - Super Off Road Port
+# Copyright (C) 2026 dopaz
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.  It is distributed WITHOUT ANY WARRANTY; see
+# the GNU General Public License in LICENSE for details.
+#
+# Developed with the assistance of Claude Opus 5 and Claude Opus 5.5.
+
+# A builder for x86_64 Linux desktops.
+#
+# Debian bullseye with the X11, Wayland, GL, sound and input development
+# packages SDL3 builds against (it loads each of them at run time).  The
+# result runs on glibc 2.31 and later, so on any current desktop.
+FROM debian:bullseye
+
+# bullseye is past its end of life: its packages are on the archive now
+RUN rm -f /etc/apt/sources.list.d/* && \
+    printf '%s\n' \
+      'deb http://archive.debian.org/debian bullseye main' \
+      'deb http://archive.debian.org/debian bullseye-updates main' \
+      'deb http://archive.debian.org/debian-security bullseye-security main' \
+      > /etc/apt/sources.list
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates git make cmake ninja-build pkg-config file zip \
+        build-essential \
+        libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+        libxfixes-dev libxss-dev libxtst-dev libxkbcommon-dev \
+        libwayland-dev wayland-protocols libwayland-bin \
+        libgl-dev libegl-dev libgles-dev libdrm-dev libgbm-dev \
+        libasound2-dev libpulse-dev libpipewire-0.3-dev \
+        libudev-dev libdbus-1-dev && \
+    rm -rf /var/lib/apt/lists/*

@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "LAUNCH: C VSCode",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/sorp.exe",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "cmake",
+            "request": "launch",
+            "name": "LAUNCH: CMakeLists",
+            "cmakeDebugType": "script",
+            "scriptPath": "${workspaceFolder}/CMakeLists.txt"
+        },
+        {
+            "name": "LAUNCH: C GDB",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/sorp.exe",
+            "cwd": "${workspaceFolder}",
+            "miDebuggerPath": "/usr/bin/gdb"
+        }
+    ]
+}

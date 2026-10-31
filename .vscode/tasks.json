@@ -1,0 +1,113 @@
+// .vscode/tasks.json
+//
+// Builds SORP with the MSVC command-line compiler.
+//
+// Key differences from a GCC-style invocation:
+//   -I path        ->  /I path        (cl accepts -I too, but be consistent)
+//   -L path        ->  /link /LIBPATH:path
+//   -lSDL3         ->  SDL3.lib       (named directly, after /link)
+//   ${file}        ->  every .c in the project, not just the open one
+//
+// Everything before /link is a compiler option; everything after it goes
+// to the linker. Order matters.
+//
+// This assumes the layout:
+//   <workspaceFolder>/
+//     src/      sorp.c, offroad_gfx.c, og_data.c, og_course.c, og_palette.c
+//     SDL3/     include/SDL3/*.h, lib/x64/SDL3.lib, lib/x64/SDL3.dll
+//     gamedata/ your copy of the original game files
+//
+// SORP links as a WINDOWS application (/SUBSYSTEM:WINDOWS), so no console
+// appears beside it -- closing that console used to kill the game, since
+// the process owned it.  A console can be opened on demand from the
+// options overlay (F1).
+//
+// <SDL3/SDL_main.h> is HEADER-ONLY in SDL3: it renames main() to
+// SDL_main and supplies the WinMain that calls it, so there is no
+// SDL3main.lib to link (SDL2 had one; SDL3 does not).
+//
+// Run the "Build SORP" task.  It runs build.cmd, which does the whole
+// build: when cl.exe is not on the PATH it finds Visual Studio with
+// vswhere and runs its vcvars64.bat, so VS Code need not be started from
+// a Developer Command Prompt.  build.cmd copies SDL3.dll next to the .exe,
+// because a DLL is found at run time relative to the executable, not via
+// /LIBPATH, and compiles src/sorp.rc into build/msvc/sorp.res so the icon
+// is linked into the executable.  The objects and the debug database go
+// in build/msvc/ too.  build.cmd passes cl relative paths, so the problem
+// matcher finds the files with "autoDetect".
+//
+// build.cmd runs cl.exe with TZ=UTC0, so the build stamp it writes through
+// __DATE__ and __TIME__ (F1's "About", and the log's first line) is in
+// UTC, the same as the Linux and handheld builds, which are made in a
+// Docker container on UTC.  Without it MSVC stamps the PC's local time.
+//
+// "Copy SDL3.dll" and "Compile the Icon RC" are the old build's separate
+// steps; build.cmd does both now, and no task depends on them.
+//
+// "Build SORP and Run" runs "Build SORP" first and starts sorp.exe only
+// if the build succeeds.  It launches the game DETACHED, through cmd's
+// "start", and finishes at once.  Run as a "process" task, VS Code waited
+// on the task terminal rather than on sorp.exe -- a windowed program --
+// and that terminal outlived the game, so the next run asked to terminate
+// an instance that no longer existed.  (The empty "" is start's window
+// title; without it a quoted path would be taken as the title.)
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Copy SDL3.dll",
+            "type": "shell",
+            "command": "copy",
+            "args": [
+                "${workspaceFolder}\\SDL3\\lib\\x64\\SDL3.dll",
+                "${workspaceFolder}\\"
+            ],
+            "options": { "cwd": "${workspaceFolder}" },
+            "presentation": { "reveal": "silent" },
+            "problemMatcher": []
+        },
+        {
+            "label": "Compile the Icon RC",
+            "type": "shell",
+            "command": "rc.exe",
+            "args": [
+                "/nologo",
+                "/fo", "${workspaceFolder}\\src\\sorp.res",
+                "${workspaceFolder}\\src\\sorp.rc"
+            ],
+            "options": { "cwd": "${workspaceFolder}\\src" },
+            "presentation": { "reveal": "silent" },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build SORP",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.cmd",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": { "executable": "cmd.exe", "args": [ "/d", "/c" ] }
+            },
+            "problemMatcher": {
+                "base": "$msCompile",
+                "fileLocation": [ "autoDetect", "${workspaceFolder}" ]
+            },
+            "group": { "kind": "build", "isDefault": true },
+            "detail": "Compile SORP sources and link against SDL3."
+        },
+        {
+            "label": "Build SORP and Run",
+            "type": "shell",
+            "command": "start",
+            "args": [ "\"\"", "${workspaceFolder}\\sorp.exe" ],
+            "dependsOn": [ "Build SORP" ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": { "executable": "cmd.exe", "args": [ "/d", "/c" ] }
+            },
+            "presentation": { "reveal": "silent" },
+            "problemMatcher": [],
+            "group": "build",
+            "detail": "Build SORP, then run sorp.exe."
+        }
+    ]
+}
