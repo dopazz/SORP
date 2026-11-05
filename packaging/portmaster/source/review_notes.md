@@ -53,9 +53,16 @@ Using the shim would trade upstream SDL3, tested with SORP on the devices below,
 ## 2. `padmap.py` in the launch script
 
 ```bash
-# Mappings counted in key-code order (patched SDL2s) are renumbered for SDL3
-MAP="$(python3 padmap.py)" && export SDL_GAMECONTROLLERCONFIG="$MAP"
+MAP="$(python3 padmap.py)" || MAP="$SDL_GAMECONTROLLERCONFIG"
+
+$GPTOKEYB2 "$BINARY" > /dev/null 2>&1 &
+
+pm_platform_helper "$GAMEDIR/$BINARY"
+
+SDL_GAMECONTROLLERCONFIG="$MAP" ./$BINARY gamedata
 ```
+
+**The renumbered mapping goes to SORP alone.** gptokeyb2 is SDL2, and keeps the CFW's own numbering. Given SORP's, it read the TrimUI Brick's L1 + R1 as Select + Start, its kill combination, and killed the game.
 
 **The problem it solves.**
 - Each mapping in `$sdl_controllerconfig` refers to buttons by number (`a:b0`, `start:b7` and so on), counted as the CFW's own SDL2 counts the pad's keys.
@@ -71,7 +78,7 @@ MAP="$(python3 padmap.py)" && export SDL_GAMECONTROLLERCONFIG="$MAP"
 
 **It fails safe.**
 - A line whose pad isn't found, or where neither reading is better, is passed through unchanged.
-- If `python3` is missing or the script fails, the `&&` skips the `export`, and the CFW's own mapping is used as before.
+- If `python3` is missing or the script fails, `MAP` falls back to the CFW's own mapping, and SORP gets that as before.
 - It only reads `/sys` and the environment. It writes nothing and changes no device setting.
 
 **Tested.**
